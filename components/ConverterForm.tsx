@@ -42,7 +42,7 @@ export const ConvertForm = (p: Props) => {
 
   return (
     <>
-      <p>Last data update: {p.date.toLocaleDateString()}</p>
+      <p>Rates from {p.date.toLocaleDateString()}</p>
       <div
         style={{
           display: "flex",
