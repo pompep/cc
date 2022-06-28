@@ -1,7 +1,9 @@
 import Head from "next/head";
-import { Container, Main, Title } from "../components/sharedstyles";
 import { Converter } from "../components/Converter";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { Container } from "../components/atoms/Container";
+import { Main } from "../components/atoms/Main";
+import { Title } from "../components/atoms/Title";
 
 export default function Home() {
   const queryClient = new QueryClient();
@@ -9,12 +11,12 @@ export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
       <Head>
-        <title>Currency converter</title>
+        <title>CZK converter</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container>
         <Main>
-          <Title>Currency converter</Title>
+          <Title>CZK converter</Title>
           <Converter />
         </Main>
       </Container>

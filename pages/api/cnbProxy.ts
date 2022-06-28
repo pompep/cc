@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import axios from "axios";
 
-// proxy for cors reasons
+// proxy to deal with cors
 export default (req: NextApiRequest, res: NextApiResponse) => {
   return axios
     .get(

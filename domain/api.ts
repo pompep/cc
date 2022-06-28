@@ -92,6 +92,7 @@ const currencyCodec = t.type(
   },
   "Currency"
 );
+export type Currency = t.TypeOf<typeof currencyCodec>;
 
 const currenciesResponseCodec = t.type({
   currencies: nonEmptyArray(currencyCodec),
