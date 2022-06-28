@@ -20,7 +20,13 @@ export const ConvertForm = (p: Props) => {
   const [amountInSelectedValue, setAmountInSelectedValue] =
     React.useState<number>();
 
-  const { register, handleSubmit, formState } = useForm<FormValues>();
+  const form = useForm<FormValues>();
+
+  form.watch(() => {
+    // clear computed amount with every input change
+    setAmountInSelectedValue(undefined);
+  });
+
   const onSubmit: SubmitHandler<FormValues> = (data) => {
     pipe(
       p.currencies,
@@ -45,14 +51,14 @@ export const ConvertForm = (p: Props) => {
         }}
       >
         <div>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <div>
-              <label>amount in CZK</label>
-              <input {...register("czkAmount")} type={"number"} />
+              <label>amount in CZK = </label>
+              <input {...form.register("czkAmount")} type={"number"} />
             </div>
             <div>
               <label>amount in</label>
-              <select {...register("selectedCurrencyCode")}>
+              <select {...form.register("selectedCurrencyCode")}>
                 {pipe(
                   sortedCurrencies,
                   array.map((c) => <option key={c.code}>{c.code}</option>)
@@ -77,7 +83,16 @@ export const ConvertForm = (p: Props) => {
                 sortedCurrencies,
                 array.map((c) => (
                   <tr key={c.code}>
-                    <td>{c.code}</td>
+                    <td>
+                      <span
+                        style={{ color: "blue", cursor: "pointer" }}
+                        onClick={() => {
+                          form.setValue("selectedCurrencyCode", c.code);
+                        }}
+                      >
+                        {c.code}
+                      </span>
+                    </td>
                     <td>{c.country}</td>
                     <td>{c.name}</td>
                     <td>
