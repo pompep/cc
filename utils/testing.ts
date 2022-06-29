@@ -1,17 +1,19 @@
-import { Either, isLeft, isRight } from "fp-ts/Either";
+import { Either } from "fp-ts/Either";
 import { isSome, none, Option } from "fp-ts/Option";
+import { identity, pipe } from "fp-ts/function";
+import { either } from "fp-ts";
 
 export const expectRight =
   <L, R>(expected?: (r: R) => void) =>
   (e: Either<L, R>) => {
-    if (isLeft(e)) {
+    if (either.isLeft(e)) {
       console.error("right expected:", e.left);
     }
 
-    expect(isRight(e)).toBe(true);
+    expect(either.isRight(e)).toBe(true);
 
     if (expected != null) {
-      if (isRight(e)) {
+      if (either.isRight(e)) {
         expected(e.right);
       }
     }
@@ -20,14 +22,14 @@ export const expectRight =
 export const expectLeft =
   <L, R>(expected?: (l: L) => void) =>
   (e: Either<L, R>) => {
-    if (isRight(e)) {
+    if (either.isRight(e)) {
       console.error("left expected:", e);
     }
 
-    expect(isLeft(e)).toBe(true);
+    expect(either.isLeft(e)).toBe(true);
 
     if (expected != null) {
-      if (isLeft(e)) {
+      if (either.isLeft(e)) {
         expected(e.left);
       }
     }
@@ -50,3 +52,13 @@ export const expectSome =
 export const expectNone = (i: unknown) => {
   expect(i).toBe(none);
 };
+
+export const rightOrThrow = <L, R>(e: Either<L, R>): R =>
+  pipe(
+    e,
+    either.fold((l) => {
+      throw new Error(
+        `Right expected, instead got left: ${JSON.stringify(l)}"`
+      );
+    }, identity)
+  );

@@ -1,54 +1,11 @@
-import axios from "axios";
 import { flow, pipe } from "fp-ts/function";
-import { array, either, option, string, task, taskEither } from "fp-ts";
+import { array, either, option, string } from "fp-ts";
 import * as t from "io-ts";
 import { Errors } from "io-ts";
 import { nonEmptyArray, NumberFromString } from "io-ts-types";
 import { format, parse } from "date-fns";
 import { matchFirst } from "../utils/string";
-import { TaskEither } from "fp-ts/TaskEither";
-import { failure } from "io-ts/lib/PathReporter";
 import { not } from "fp-ts/Predicate";
-
-type ApiError = string; // keep it simple for now
-
-export const fetchCurrencies = (): TaskEither<ApiError, CurrenciesResponse> => {
-  return pipe(
-    taskEither.tryCatch(
-      () => axios.get("/api/cnbProxy").then((response) => response.data),
-      (e) => `fetch failed: ${e}`
-    ),
-    task.map(
-      either.chain(
-        flow(
-          currenciesResponseFromStringCodec.decode,
-          either.mapLeft(
-            (validationErrors) =>
-              `api response in unexpected format: ${errorsToMessage(
-                validationErrors
-              )}`
-          )
-        )
-      )
-    )
-  );
-};
-
-const errorsToMessage = (errors: Errors): string => failure(errors).join(";\n");
-
-const csDecimalSeparator = ",";
-const commonDecimalSeparator = ".";
-export const numberFromCsStringCodec = new t.Type<number, string>(
-  "numberFromCsString",
-  t.number.is,
-  (u, c) =>
-    pipe(
-      t.string.validate(u, c),
-      either.map((s) => s.replace(csDecimalSeparator, commonDecimalSeparator)),
-      either.chain((s) => NumberFromString.validate(s, c))
-    ),
-  (n) => n.toString().replace(commonDecimalSeparator, csDecimalSeparator)
-);
 
 interface ValidDateBrand {
   readonly ValidDate: unique symbol;
@@ -82,13 +39,38 @@ export const validDateFromStringCodec = new t.Type<ValidDate, string>(
   (validDate) => format(validDate, dateFormat)
 );
 
+interface RateBrand {
+  readonly Rate: unique symbol;
+}
+// Rate cannot be zero or negative
+export const rateCodec = t.brand(
+  t.number,
+  (n): n is t.Branded<number, RateBrand> => n > 0,
+  "Rate"
+);
+export type Rate = t.TypeOf<typeof rateCodec>;
+
+const csDecimalSeparator = ",";
+const commonDecimalSeparator = ".";
+export const numberFromCsStringCodec = new t.Type<number, string>(
+  "numberFromCsString",
+  NumberFromString.is,
+  (u, c) =>
+    pipe(
+      t.string.validate(u, c),
+      either.map((s) => s.replace(csDecimalSeparator, commonDecimalSeparator)),
+      either.chain((s) => NumberFromString.validate(s, c))
+    ),
+  (n) => n.toString().replace(commonDecimalSeparator, csDecimalSeparator)
+);
+
 const currencyCodec = t.type(
   {
     country: t.string,
     name: t.string,
     amount: NumberFromString,
     code: t.string,
-    rate: numberFromCsStringCodec,
+    rate: numberFromCsStringCodec.pipe(rateCodec),
   },
   "Currency"
 );
@@ -147,3 +129,10 @@ export const currenciesResponseFromStringCodec = new t.Type<
     ),
   String // encode not used => just stubbed for now
 );
+
+export const convert = (
+  selectedCurrency: Pick<Currency, "amount" | "rate">,
+  czkAmount: number
+) =>
+  (selectedCurrency.amount / selectedCurrency.rate) * // rate is ensured to be > 0
+  czkAmount;

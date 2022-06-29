@@ -24,8 +24,23 @@ describe("index page", () => {
     cy.getByData("alert");
   });
 
-  it.only("happy path", () => {
+  it("happy path", () => {
     cy.visit("/");
+
+    cy.getByData("czkAmount").type("invalidNumber");
+    cy.getByData("submit").click();
+    cy.getByData("czkAmount").should("have.class", "error");
+    cy.getByData("result").should("not.exist");
+
+    cy.getByData("czkAmount").clear();
+    cy.getByData("czkAmount").type("10");
+    cy.getByData("submit").click();
+    cy.getByData("result").should("exist");
+
+    cy.getByData("quickSet").last().click();
+    cy.getByData("result").should("not.exist");
+    cy.getByData("submit").click();
+    cy.getByData("result").should("exist");
   });
 });
 

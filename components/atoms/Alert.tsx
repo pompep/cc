@@ -9,4 +9,6 @@ export const Alert = (p: Props) => {
   return <StyledAlert data-cy="alert">{p.children}</StyledAlert>;
 };
 
-const StyledAlert = styled.div``;
+const StyledAlert = styled.div`
+  color: ${({ theme }) => theme.colors.error}; ;
+`;

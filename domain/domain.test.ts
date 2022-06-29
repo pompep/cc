@@ -1,9 +1,11 @@
 import {
+  convert,
   CurrenciesResponse,
   currenciesResponseFromStringCodec,
+  rateCodec,
   validDateFromStringCodec,
-} from "./api";
-import { expectLeft, expectRight } from "../utils/testing";
+} from "./domain";
+import { expectLeft, expectRight, rightOrThrow } from "../utils/testing";
 import { pipe } from "fp-ts/function";
 
 describe("dateFromStringCodec", () => {
@@ -77,5 +79,28 @@ Brazílie|real|1|BRL|4,460`,
       currenciesResponseFromStringCodec.decode,
       expectLeft()
     );
+  });
+});
+
+describe("convert", () => {
+  test("czkAmount equal rate", () => {
+    const czkAmount = 24.725;
+    const rate = pipe(czkAmount, rateCodec.decode, rightOrThrow);
+
+    expect(convert({ amount: 1, rate }, czkAmount)).toEqual(1);
+  });
+
+  test("zero czkAmount", () => {
+    const czkAmount = 0;
+    const rate = pipe(10, rateCodec.decode, rightOrThrow);
+
+    expect(convert({ amount: 1, rate }, czkAmount)).toEqual(1);
+  });
+
+  test("negative czkAmount", () => {
+    const czkAmount = -1;
+    const rate = pipe(1, rateCodec.decode, rightOrThrow);
+
+    expect(convert({ amount: 1, rate }, czkAmount)).toEqual(czkAmount);
   });
 });

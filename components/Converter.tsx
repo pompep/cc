@@ -1,12 +1,12 @@
 import * as React from "react";
 import { useQuery } from "react-query";
-import { fetchCurrencies } from "../domain/api";
+import { fetchCurrencies } from "../api/api";
 import { pipe } from "fp-ts/function";
 import { assertUnreachable } from "../utils/assertUnreachable";
 import { Spinner } from "./atoms/Spinner";
 import { either } from "fp-ts";
 import { ApiError } from "./ApiError";
-import { ConvertForm } from "./ConverterForm";
+import ConvertForm from "./ConverterForm";
 
 export const Converter = () => {
   const currenciesQuery = useCurrencies();
